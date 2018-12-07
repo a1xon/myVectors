@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>My Vectors - Piet Althoff</title>
+    <script src="https://aframe.io/releases/0.8.0/aframe.min.js"></script>
+    <script src="https://unpkg.com/aframe-animation-component/dist/aframe-animation-component.min.js"></script>
+  </head>
+
+  <body>
+    <a-scene id="scene" background="color: black">
+      <a-entity
+        camera="active: true"
+        look-controls
+        wasd-controls
+        position="7 1.5 14"
+        data-aframe-default-camera
+      >
+      </a-entity>
+      <a-entity id="room">
+        <a-text
+          value="Piet Althoff"
+          color="white"
+          width="35"
+          opacity="0.1"
+          transparent="true"
+          position="-5 0 -3"
+          side="double"
+          anchor="center"
+          rotation="0 12 0"
+        ></a-text>
+      </a-entity>
+    </a-scene>
+  </body>
+</html>
+
+<script>
+  (() => {
+    let assetsCreated = 0;
+    let domRoom = document.querySelector("#room");
+    let domScene = document.querySelector("#scene");
+    let lineCount = 0;
+
+    ///helper functions
+    const vectorMerger = (vector1, vector2, weight) => {
+      /// this is not complicated math -
+      /// it's just some gibberish to produce a nice looking result
+      /// #quickAndDirty #noOneWillReadThis
+      let result = [0, 0, 0];
+      for (let i = 0; i <= 2; i++) {
+        result[i] = (vector1[i] * weight + vector2[i] * (1 - weight)) / 2;
+      }
+      result[0] *= 4.5;
+      result[1] *= 2.5;
+      result[2] *= 4;
+      result = result.map(a => a - Math.random() * 5);
+      return result;
+    };
+
+    const vectorDistance = (vector1, vector2) => {
+      let dx = vector1[0] - vector2[0];
+      let dy = vector1[1] - vector2[1];
+      let dz = vector1[2] - vector2[2];
+      return Math.sqrt(dx * dx + dy * dy + dz * dz);
+    };
+
+    class Asset {
+      constructor(
+        name,
+        level,
+        skillHobbyRelation,
+        backendlevel,
+        vector = [0, 0, 0],
+        animated = true
+      ) {
+        this.name = name;
+        this.level = level;
+        this.skillHobbyRelation = skillHobbyRelation;
+        this.backendlevel = backendlevel;
+        this.htmlElement = document.createElement("a-text");
+        this.htmlElement.setAttribute("id", name);
+        this.htmlElement.setAttribute("value", name);
+        this.htmlElement.setAttribute("color", "white");
+        this.htmlElement.setAttribute("anchor", "left");
+        this.htmlElement.setAttribute("align", "left");
+        this.htmlElement.setAttribute("side", "double");
+        this.htmlElement.setAttribute("letterSpacing", "-2");
+        this.htmlElement.setAttribute("transparent", "true");
+        this.htmlElement.setAttribute("width", this.level * 20);
+        this.htmlElement.setAttribute("rotation", "0 -20 0");
+        this.vector = vector;
+        if (animated) {
+          this.htmlElement.setAttribute("opacity", "0.0");
+          this.htmlElement.setAttribute("animation", "property: opacity; dir: normal; dur: 750; easing: easeOutQuad; loop: false; from: 0; to: 0.9; delay:" + (assetsCreated++ * 100 + 1000));
+        } else {
+          this.htmlElement.setAttribute("opacity", "0.1");
+        }
+      }
+      draw() {
+        this.htmlElement.setAttribute(
+          "position",
+          `${this.vector[0]} ${this.vector[1]} ${this.vector[2]}`
+        );
+        domRoom.appendChild(this.htmlElement);
+      }
+      calculateVector(skills, hobbies) {
+        this.vector = vectorMerger(skills, hobbies, this.skillHobbyRelation);
+      }
+    }
+
+    class Line {
+      constructor(startVector, endVector, color) {
+        this.startVector = startVector;
+        this.endVector = endVector;
+        this.color = color;
+        this.htmlElement = document.createElement("a-entity");
+        this.startVector[0] += 0;
+        this.endVector[0] += 0;
+        let attrString = `start: ${startVector.join(" ")}; end: ${endVector.join(" ")}; color: ${color}; opacity: 0.2;`;
+        this.htmlElement.setAttribute("line", attrString);
+        domScene.appendChild(this.htmlElement);
+      }
+    }
+
+    class Room {
+      constructor() {
+        //markers
+        this.skills = new Asset("Skills", 2.5, 0.5, 0, [8, 5, 3], false);
+        this.hobbies = new Asset("Hobbies", 2, 0.5, 0, [-10, 0, -15], false);
+        this.skills.draw();
+        this.hobbies.draw();
+      }
+      positionAssetInRoom(assets) {
+        for (let asset of assets) {
+          let closeNeighboors = true;
+          while (closeNeighboors) {
+            asset.calculateVector(this.skills.vector, this.hobbies.vector);
+            closeNeighboors = false;
+            for (let listAsset of assets) {
+              if (
+                listAsset.name !== asset.name &&
+                vectorDistance(asset.vector, listAsset.vector) <= 3 &&
+                listAsset.vector.reduce((a, b) => a + b, 0) !== 0
+              ) {
+                closeNeighboors = true;
+                break;
+              }
+            }
+          }
+          asset.draw();
+          ///draw lines
+          for (let listAsset of assets) {
+            if (
+              vectorDistance(asset.vector, listAsset.vector) <= 7 &&
+              listAsset.vector.reduce((a, b) => a + b, 0) !== 0
+            ) {
+              let line = new Line(asset.vector, listAsset.vector, "white");
+            }
+          }
+        }
+      }
+    }
+
+    ///data
+    const me = {
+      assets: [
+        new Asset("Vue.js", 0.6, 0.8, 0.1),
+        new Asset("HTML5", 0.3, 0.9, 0.1),
+        new Asset("CSS3", 0.3, 1, 0.0),
+        new Asset("tensorflow.js", 0.2, 0.6, 0.3),
+        new Asset("Usability", 0.5, 0.6, 0.0),
+        new Asset("Node.js", 1, 0.8, 0.8),
+        new Asset("Nuxt", 0.6, 0.9, 0.5),
+        new Asset("PHP", 0.2, 1, 0.9),
+        new Asset("JSON", 0.9, 0.8, 0.5),
+        new Asset("MongoDB", 0.8, 0.8, 1),
+        new Asset("Puppeteer", 0.6, 0.9, 0.5),
+        new Asset("Crawling", 0.8, 0.9, 0.5),
+        new Asset("SEO", 0.9, 1, 0.1),
+        new Asset("RegEx", 0.9, 0.7, 0.9),
+        new Asset("Google Analytics", 0.6, 0.8, 0.1),
+        new Asset("Automatization", 0.6, 0.9, 0.6),
+        new Asset("Kanban", 0.6, 1, 0.9),
+        new Asset("Git", 0.7, 1, 1),
+        new Asset("Ubuntu", 0.5, 0.4, 1),
+        new Asset("ES6", 0.8, 0.5, 0.5),
+        new Asset("Raspberry Pi", 0.8, 0.5, 1),
+        new Asset("Arduino", 0.3, 0.3, 1),
+        new Asset("Jonny-Five", 0.6, 0.6, 0.9),
+        new Asset("Robotics", 0.8, 0.5, 0.9),
+        new Asset("Business Development", 0.2, 0.3, 0.5),
+        new Asset("Fusion 360", 0.3, 0.1, 0.9),
+        new Asset("Inkscape", 0.4, 0.3, 0.0),
+        new Asset("3d-Printing", 0.4, 0.1, 1),
+        new Asset("Cooking", 0.4, 0.1, 0.2),
+        new Asset("Beer & Brewing", 0.5, 0.0, 0.1),
+        new Asset("Fonts", 0.3, 0.2, 0.0),
+        new Asset("International Politics", 0.2, 0.0, 0.1),
+        new Asset("Table Soccer - Defense", 0.6, 0.2, 0.1),
+        new Asset("Piano", 0.5, 0.1, 0.2)
+      ]
+    };
+
+    const room = new Room();
+    room.positionAssetInRoom(me.assets);
+  })();
+</script>
