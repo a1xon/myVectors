@@ -35,6 +35,8 @@
 </html>
 
 <script>
+  // https://github.com/a1xon/myVectors
+
   (() => {
     let assetsCreated = 0;
     let domRoom = document.querySelector("#room");
@@ -50,7 +52,7 @@
       for (let i = 0; i <= 2; i++) {
         result[i] = (vector1[i] * weight + vector2[i] * (1 - weight)) / 2;
       }
-      result[0] *= 4.5;
+      result[0] *= 4;
       result[1] *= 2.5;
       result[2] *= 4;
       result = result.map(a => a - Math.random() * 5);
@@ -114,9 +116,7 @@
         this.endVector = endVector;
         this.color = color;
         this.htmlElement = document.createElement("a-entity");
-        this.startVector[0] += 0;
-        this.endVector[0] += 0;
-        let attrString = `start: ${startVector.join(" ")}; end: ${endVector.join(" ")}; color: ${color}; opacity: 0.2;`;
+        let attrString = `start: ${startVector.join(" ")}; end: ${endVector.join(" ")}; color: ${color}; opacity: 0.1;`;
         this.htmlElement.setAttribute("line", attrString);
         domScene.appendChild(this.htmlElement);
       }
@@ -167,10 +167,14 @@
         new Asset("Vue.js", 0.6, 0.8, 0.1),
         new Asset("HTML5", 0.3, 0.9, 0.1),
         new Asset("CSS3", 0.3, 1, 0.0),
+        new Asset("Bootstrap", 0.6, 0.9, 0.0),
+        new Asset("Responsive Design", 0.8, 0.65, 0.0),
+        new Asset("Usability", 0.5, 0.65, 0.0),
         new Asset("tensorflow.js", 0.2, 0.6, 0.3),
-        new Asset("Usability", 0.5, 0.6, 0.0),
         new Asset("Node.js", 1, 0.8, 0.8),
-        new Asset("Nuxt", 0.6, 0.9, 0.5),
+        new Asset("NLP", 0.6, 0.8, 0.8),
+        new Asset("Python", 0.2, 0.5, 0.8),
+        new Asset("Nuxt", 0.7, 0.9, 0.5),
         new Asset("PHP", 0.2, 1, 0.9),
         new Asset("JSON", 0.9, 0.8, 0.5),
         new Asset("MongoDB", 0.8, 0.8, 1),
